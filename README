@@ -1,0 +1,8 @@
+PyHussie
+==========================================================================
+
+A Python module for handling files from AndrewHussie's MS Paint Adventures
+site as well as ones from Homestuck (Russian) Translation Project.
+
+Made in order to not repeat the code, since most of the programs use the
+same methods.
