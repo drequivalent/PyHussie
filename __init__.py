@@ -26,7 +26,11 @@ def get_hussies_page(pagenum):
     """Gets a specified page from mspaintadventures.com by specified pagenumber and normalizes Andrew Hussie's EOLs. Returns a string with clean page text, that can be fed to parse_page()"""
     hussieresponse = urllib.urlopen("http://www.mspaintadventures.com/6/" + pagenum + ".txt")
     readhussie = hussieresponse.read()
-    return "\n".join(readhussie.splitlines())
+    if readhussie.find("404 Not Found") == -1:
+        return "\n".join(readhussie.splitlines())
+    else:
+        raise IOError("MS Paint Adventures webdite appears not to have this page.")
+        return
 
 def parse_page(text):
     """Parses the page, no matter Andrew Hussie's or Translated. Returns a list, containing the following:
