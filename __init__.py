@@ -83,3 +83,13 @@ def assemble_page(parsedlist, markx = True, onlyfilenames = True):
             newlinks.append(element.split('/')[-1])
         parsedlist[3] = "\n".join(newlinks)
     return "\n###\n".join(parsedlist)
+
+###############################################################
+#DANGER ZONE: this thing writes to real files. Handle with care
+###############################################################
+
+def write_page(pagenumber, page):
+    """Writes the assembled page into the Translated page's file. Takes a page number and a string with page's text. Returns nothing, but writes into file."""
+    trans_page = open(locate_trans_page(pagenumber), "w")
+    trans_page.write(page)
+    trans_page.close()
