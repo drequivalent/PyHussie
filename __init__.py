@@ -54,7 +54,7 @@ def parse_page(text):
 def locate_trans_page(pagenumber, root = os.curdir):
     """Locates an absolute path to the specified page. Takes the full page number, returns the path as a string."""
     pattern = pagenumber + ".txt"    
-    for path, dirs, files in os.walk(os.path.abspath(root)):
+    for path, dirs, files in os.walk(os.path.abspath(os.path.expanduser(root))):
         for filename in fnmatch.filter(files, pattern):
             return os.path.join(path, filename)
 
@@ -106,6 +106,16 @@ def act_to_rel_path(act):
     """Converts the name of act given as an argument to path relative to repository root. For example 'Act6 Act6' will result in 'Act6/Act6'"""
     actlist = act.split(" ")
     return os.sep.join(actlist)
+
+def check_act(act, root = os.curdir):
+    """Checks if the specified act exists in the repository. Returns True if it does."""
+    actpath = act_to_rel_path(act)
+    abspath = os.sep.join([os.path.expanduser(root), actpath])
+    if os.path.exists(abspath):
+        return True
+    else:
+        return False
+    
 ###############################################################
 #IMAGES ZONE: handling images
 ###############################################################
@@ -125,7 +135,7 @@ def locate_trans_images(pagenumber, root = os.curdir):
     filenames = filenamesstring.split("\n")
     paths = []
     for pattern in filenames:
-        for path, dirs, files in os.walk(os.path.abspath(root)):
+        for path, dirs, files in os.walk(os.path.abspath(os.path.expanduser(root))):
             for filename in fnmatch.filter(files, pattern):
                 paths.append(os.path.join(path, filename))
     return paths
@@ -156,9 +166,28 @@ def write_page(pagenumber, page, root = os.curdir):
 def create_page(pagenumber, act, page, root = os.curdir):
     """Creates a new page that has a specified pagenumber in the specified act. Recieves an assembeled page as a first argument. Returns nothing, but writes into file. Also may write to specified repository."""
     pagepath = os.sep.join([os.path.expanduser(root), act_to_rel_path(act), pagenumber + ".txt"])
-    pagedir = os.path.split(pagepath)[0]
-    if not os.path.exists(pagedir):
-        os.makedirs(pagedir)
+    if not check_act(act):
+        create_act(act, root)
     new_page = open(pagepath, "w+")
     new_page.write(page)
     new_page.close()
+
+def create_act(act, root = os.curdir, imgdirname = "img"):
+    """Creates the sprcified act in the repository. Takes a string with an act name (like Act6 Act6). Returns nothing, but creates a directory."""
+    actpath = act_to_rel_path(act)
+    abspath = os.sep.join([os.path.expanduser(root), actpath])
+    os.makedirs(abspath)
+    os.makedirs(os.sep.join([abspath, imgdirname]))
+
+def move_page(pagenumber, act, root = os.curdir, imgdirname = "img"):
+    """Moves specified page into specified act. Takes a pagenumber and the name of the act. Creates an act if it's not present."""
+    if not check_act(act):
+        create_act(act, root)
+    pagepath = locate_trans_page(pagenumber, root)
+    imgpaths = locate_trans_images(pagenumber, root)
+    newactpath = os.sep.join([os.path.expanduser(root), act_to_rel_path(act)])
+    newpagepath = os.sep.join([newactpath, pagenumber + ".txt"])
+    for imgpath in imgpaths:
+        newimgpath = (os.sep.join([newactpath, imgdirname, imgpath.split(os.sep)[-1]]))
+        os.rename(imgpath, newimgpath)
+    os.rename(pagepath, newpagepath)
