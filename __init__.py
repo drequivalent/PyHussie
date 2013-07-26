@@ -102,6 +102,10 @@ def special_link_to_ordinary(link):
         link = link[2:] + "/" + link[2:].split("/")[-1] + ".swf" # Ugh, this thing is ugly as fsck. But I guess, it works. I was too lazy for urlsplit, may be later.
     return link
 
+def act_to_rel_path(act):
+    """Converts the name of act given as an argument to path relative to repository root. For example 'Act6 Act6' will result in 'Act6/Act6'"""
+    actlist = act.split(" ")
+    return os.sep.join(actlist)
 ###############################################################
 #IMAGES ZONE: handling images
 ###############################################################
@@ -143,7 +147,18 @@ def get_trans_images(pagenumber, root = os.curdir):
 ###############################################################
 
 def write_page(pagenumber, page, root = os.curdir):
-    """Writes the assembled page into the Translated page's file. Takes a page number and a string with page's text. Returns nothing, but writes into file."""
-    trans_page = open(locate_trans_page(pagenumber, root), "w")
+    """Writes the assembled page into the Translated page's file. Takes a page number and a string with page's text. Returns nothing, but writes into file. Also may write to specified repository."""
+    pagepath = locate_trans_page(pagenumber, root)
+    trans_page = open(pagepath, "w")
     trans_page.write(page)
     trans_page.close()
+
+def create_page(pagenumber, act, page, root = os.curdir):
+    """Creates a new page that has a specified pagenumber in the specified act. Recieves an assembeled page as a first argument. Returns nothing, but writes into file. Also may write to specified repository."""
+    pagepath = os.sep.join([os.path.expanduser(root), act_to_rel_path(act), pagenumber + ".txt"])
+    pagedir = os.path.split(pagepath)[0]
+    if not os.path.exists(pagedir):
+        os.makedirs(pagedir)
+    new_page = open(pagepath, "w+")
+    new_page.write(page)
+    new_page.close()
