@@ -21,6 +21,11 @@ import urllib
 import os.path
 import os
 import fnmatch
+import StringIO
+
+###############################################################
+#PAGES ZONE: handling pages, the essential part of repository
+###############################################################
 
 def get_hussies_page(pagenum):
     """Gets a specified page from mspaintadventures.com by specified pagenumber and normalizes Andrew Hussie's EOLs. Returns a string with clean page text, that can be fed to parse_page()"""
@@ -59,17 +64,17 @@ def get_trans_page_from_path(path):
     return trans_page.read()
         
 
-def get_trans_page(pagenum):
+def get_trans_page(pagenum, root = os.curdir):
     """Gets the Translated page by specified pagenumber. Returns a string with page text, that can be fed to parse_page()"""
-    return get_trans_page_from_path(locate_trans_page(pagenum))
+    return get_trans_page_from_path(locate_trans_page(pagenum, root))
 
 def get_parsed_hussies_page(pagenum):
     """Gets a specified page from mspaintadventures.com by specified pagenumber, normalizes Andrew Hussie's EOLs and feeds it to the parse_page(). Returns a list. For description of the contained data, see parse_page()."""
     return parse_page(get_hussies_page(pagenum))
 
-def get_parsed_trans_page(pagenum):
+def get_parsed_trans_page(pagenum, root = os.curdir):
     """Gets the Translated page from path specified in the argument and feeds it to the parse_page(). Returns a list. For description of the contained data, see parse_page()."""
-    return parse_page(get_trans_page(pagenum))
+    return parse_page(get_trans_page(pagenum, root))
 
 def assemble_page(parsedlist, markx = True, onlyfilenames = True):
     """Assembles the page from the list given as the argument. Returns a string with page text. Optionally, it can be told not to append the Newline and X symbol. This option is reserved for future use. It also reduces the links in Hussie's page to filenames by default."""
@@ -82,18 +87,63 @@ def assemble_page(parsedlist, markx = True, onlyfilenames = True):
         links = parsedlist[3].split("\n")
         newlinks = []        
         for element in links:
-            if element[:2] == "F|":
-                element = element[2:] + ".swf"
+            element = special_link_to_ordinary(element)
             newlinks.append(element.split('/')[-1])
         parsedlist[3] = "\n".join(newlinks)
     return "\n###\n".join(parsedlist)
 
 ###############################################################
+#LITTLE TWEAKS ZONE: small things that are nice to have
+###############################################################
+
+def special_link_to_ordinary(link):
+    """Converts a special link for animated/interactive content (like the ones starting with F| for .swf files) to an ordinary link pointing to an actual file. A small utility that is nice to have"""
+    if link[:2] == "F|":
+        link = link[2:] + "/" + link[2:].split("/")[-1] + ".swf" # Ugh, this thing is ugly as fsck. But I guess, it works. I was too lazy for urlsplit, may be later.
+    return link
+
+###############################################################
+#IMAGES ZONE: handling images
+###############################################################
+def get_hussies_images(pagenumber):
+    """Gets visual content for specified page from mspaintadventures.com by specified pagenumber. Returns list of file-like objects, that can be read."""
+    linksstring = get_parsed_hussies_page(pagenumber)[3]
+    links = linksstring.split("\n")
+    hussiesimages = []
+    for link in links:
+        hussiesimage = urllib.urlopen(special_link_to_ordinary(link))
+        hussiesimages.append(hussiesimage)
+    return hussiesimages
+
+def locate_trans_images(pagenumber, root = os.curdir):
+    """Locates absolute paths to visual content for specified page. Takes full page number, returns list of paths."""
+    filenamesstring = get_parsed_trans_page(pagenumber, root)[3]
+    filenames = filenamesstring.split("\n")
+    paths = []
+    for pattern in filenames:
+        for path, dirs, files in os.walk(os.path.abspath(root)):
+            for filename in fnmatch.filter(files, pattern):
+                paths.append(os.path.join(path, filename))
+    return paths
+
+def get_trans_images_from_paths(paths):
+    """Gets the visual content for Translated page from list of paths specified in the argument. Returns list file objets with images open."""
+    transimages = []    
+    for path in paths:
+        transimage = open(path)
+        transimages.append(transimage)
+    return transimages
+
+def get_trans_images(pagenumber, root = os.curdir):
+    """Gets the visual content for Translated page by specified pagenumber. Returns list file objets with images open."""
+    return get_trans_images_from_paths(locate_trans_images(pagenumber, root))
+
+###############################################################
 #DANGER ZONE: this thing writes to real files. Handle with care
 ###############################################################
 
-def write_page(pagenumber, page):
+def write_page(pagenumber, page, root = os.curdir):
     """Writes the assembled page into the Translated page's file. Takes a page number and a string with page's text. Returns nothing, but writes into file."""
-    trans_page = open(locate_trans_page(pagenumber), "w")
+    trans_page = open(locate_trans_page(pagenumber, root), "w")
     trans_page.write(page)
     trans_page.close()
