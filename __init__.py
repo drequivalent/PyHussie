@@ -34,7 +34,7 @@ def get_hussies_page(pagenum):
     if readhussie.find("404 Not Found") == -1:
         return "\n".join(readhussie.splitlines())
     else:
-        raise IOError("MS Paint Adventures webdite appears not to have this page.")
+        raise IOError("MS Paint Adventures website appears not to have this page.")
         return
 
 def parse_page(text):
@@ -218,3 +218,11 @@ def move_page(pagenumber, act, root = os.curdir, imgdirname = "img"):
         newimgpath = (os.sep.join([newactpath, imgdirname, imgpath.split(os.sep)[-1]]))
         os.rename(imgpath, newimgpath)
     os.rename(pagepath, newpagepath)
+
+def drop_act(act, root = os.curdir, imgdirname = "img"):
+    """Deletes the act from repository, but only if it is empty."""
+    relpath = act_to_rel_path(act)
+    abspath = os.sep.join([os.path.expanduser(root), relpath])
+    absimgpath = os.sep.join([abspath, imgdirname])
+    os.rmdir(absimgpath)
+    os.rmdir(abspath)
