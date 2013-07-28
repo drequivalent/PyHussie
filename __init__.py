@@ -107,12 +107,16 @@ def act_to_rel_path(act):
     actlist = act.split(" ")
     return os.sep.join(actlist)
 
-def check_act(act, root = os.curdir):
-    """Checks if the specified act exists in the repository. Returns True if it does."""
+def check_act(act, root = os.curdir, imgdirname = "img"):
+    """Checks if the specified act (and corresponding images directory) exists in the repository. Returns True if it does."""
     actpath = act_to_rel_path(act)
     abspath = os.sep.join([os.path.expanduser(root), actpath])
+    absimgpath = os.sep.join([abspath, imgdirname])  
     if os.path.exists(abspath):
-        return True
+        if os.path.exists(absimgpath):
+            return True
+        else:
+            return False
     else:
         return False
     
@@ -149,12 +153,32 @@ def get_trans_images_from_paths(paths):
     return transimages
 
 def get_trans_images(pagenumber, root = os.curdir):
-    """Gets the visual content for Translated page by specified pagenumber. Returns list file objets with images open."""
+    """Gets the visual content for Translated page by specified pagenumber. Returns list of file objets with images open."""
     return get_trans_images_from_paths(locate_trans_images(pagenumber, root))
 
 ###############################################################
 #DANGER ZONE: this thing writes to real files. Handle with care
 ###############################################################
+
+def write_image(image, act, root = os.curdir, imgdirname = "img"):
+    """Writes the image given in the first argument into the specified act. Returns nothing, but writes into files."""
+    filename = image.geturl().split("/")[-1]
+    actpath = act_to_rel_path(act)
+    abspath = os.sep.join([os.path.expanduser(root), actpath, imgdirname, filename])
+    imgfile = open(abspath, "w")
+    imgfile.write(image.read())
+    imgfile.close
+
+def create_image(image, act, root = os.curdir, imgdirname = "img"):
+    """Creates the images from the given list in the specified act."""
+    filename = image.geturl().split("/")[-1]
+    if not check_act(act, root):
+        create_act(act, root)
+    actpath = act_to_rel_path(act)
+    abspath = os.sep.join([os.path.expanduser(root), actpath, imgdirname, filename])
+    imgfile = open(abspath, "w+")
+    imgfile.write(image.read())
+    imgfile.close
 
 def write_page(pagenumber, page, root = os.curdir):
     """Writes the assembled page into the Translated page's file. Takes a page number and a string with page's text. Returns nothing, but writes into file. Also may write to specified repository."""
@@ -176,8 +200,11 @@ def create_act(act, root = os.curdir, imgdirname = "img"):
     """Creates the sprcified act in the repository. Takes a string with an act name (like Act6 Act6). Returns nothing, but creates a directory."""
     actpath = act_to_rel_path(act)
     abspath = os.sep.join([os.path.expanduser(root), actpath])
-    os.makedirs(abspath)
-    os.makedirs(os.sep.join([abspath, imgdirname]))
+    absimgpath = os.sep.join([abspath, imgdirname])
+    if not os.path.exists(abspath):
+        os.makedirs(abspath)
+    if not os.path.exists(absimgpath):
+        os.makedirs(absimgpath)
 
 def move_page(pagenumber, act, root = os.curdir, imgdirname = "img"):
     """Moves specified page into specified act. Takes a pagenumber and the name of the act. Creates an act if it's not present."""
