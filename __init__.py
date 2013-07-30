@@ -104,16 +104,20 @@ def special_link_to_ordinary(link):
 
 def act_to_rel_path(act):
     """Converts the name of act given as an argument to path relative to repository root. For example 'Act6 Act6' will result in 'Act6/Act6'"""
-    actlist = act.split(" ")
-    return os.sep.join(actlist)
+    return os.sep.join(act.split(" "))
+
+def act_to_abs_path(act, root = os.curdir):
+    """Converts the name of act given as an argument to an absolute path of the directory in the filesystem."""
+    return os.sep.join([os.path.expanduser(root), act_to_rel_path(act)])
+
+def act_to_img_path(act, root = os.curdir, imgdirname = "img"):
+    """Converts the name of act given as an argument to an absolute path to the visual/interactive content of the act."""
+    return os.sep.join([act_to_abs_path(act, root), imgdirname])
 
 def check_act(act, root = os.curdir, imgdirname = "img"):
-    """Checks if the specified act (and corresponding images directory) exists in the repository. Returns True if it does."""
-    actpath = act_to_rel_path(act)
-    abspath = os.sep.join([os.path.expanduser(root), actpath])
-    absimgpath = os.sep.join([abspath, imgdirname])  
-    if os.path.exists(abspath):
-        if os.path.exists(absimgpath):
+    """Checks if the specified act (and corresponding images directory) exists in the repository. Returns True if it does.""" 
+    if os.path.exists(act_to_abs_path(act, root)):
+        if os.path.exists(act_to_img_path(act, root, imgdirname)):
             return True
         else:
             return False
@@ -163,8 +167,7 @@ def get_trans_images(pagenumber, root = os.curdir):
 def write_image(image, act, root = os.curdir, imgdirname = "img"):
     """Writes the image given in the first argument into the specified act. Returns nothing, but writes into files."""
     filename = image.geturl().split("/")[-1]
-    actpath = act_to_rel_path(act)
-    abspath = os.sep.join([os.path.expanduser(root), actpath, imgdirname, filename])
+    abspath = os.sep.join([act_to_img_path(act, root, imgdirname), filename])
     imgfile = open(abspath, "w")
     imgfile.write(image.read())
     imgfile.close
@@ -174,8 +177,7 @@ def create_image(image, act, root = os.curdir, imgdirname = "img"):
     filename = image.geturl().split("/")[-1]
     if not check_act(act, root):
         create_act(act, root)
-    actpath = act_to_rel_path(act)
-    abspath = os.sep.join([os.path.expanduser(root), actpath, imgdirname, filename])
+    abspath = os.sep.join([act_to_img_path(act, root, imgdirname), filename])
     imgfile = open(abspath, "w+")
     imgfile.write(image.read())
     imgfile.close
@@ -189,7 +191,7 @@ def write_page(pagenumber, page, root = os.curdir):
 
 def create_page(pagenumber, act, page, root = os.curdir):
     """Creates a new page that has a specified pagenumber in the specified act. Recieves an assembeled page as a first argument. Returns nothing, but writes into file. Also may write to specified repository."""
-    pagepath = os.sep.join([os.path.expanduser(root), act_to_rel_path(act), pagenumber + ".txt"])
+    pagepath = os.sep.join([act_to_abs_path(act, root), pagenumber + ".txt"])
     if not check_act(act):
         create_act(act, root)
     new_page = open(pagepath, "w+")
@@ -198,9 +200,8 @@ def create_page(pagenumber, act, page, root = os.curdir):
 
 def create_act(act, root = os.curdir, imgdirname = "img"):
     """Creates the sprcified act in the repository. Takes a string with an act name (like Act6 Act6). Returns nothing, but creates a directory."""
-    actpath = act_to_rel_path(act)
-    abspath = os.sep.join([os.path.expanduser(root), actpath])
-    absimgpath = os.sep.join([abspath, imgdirname])
+    abspath = act_to_abs_path(act, root)
+    absimgpath = act_to_img_path(act, root, imgdirname)
     if not os.path.exists(abspath):
         os.makedirs(abspath)
     if not os.path.exists(absimgpath):
@@ -212,7 +213,7 @@ def move_page(pagenumber, act, root = os.curdir, imgdirname = "img"):
         create_act(act, root)
     pagepath = locate_trans_page(pagenumber, root)
     imgpaths = locate_trans_images(pagenumber, root)
-    newactpath = os.sep.join([os.path.expanduser(root), act_to_rel_path(act)])
+    newactpath = act_to_abs_path(act, root)
     newpagepath = os.sep.join([newactpath, pagenumber + ".txt"])
     for imgpath in imgpaths:
         newimgpath = (os.sep.join([newactpath, imgdirname, imgpath.split(os.sep)[-1]]))
@@ -221,8 +222,5 @@ def move_page(pagenumber, act, root = os.curdir, imgdirname = "img"):
 
 def drop_act(act, root = os.curdir, imgdirname = "img"):
     """Deletes the act from repository, but only if it is empty."""
-    relpath = act_to_rel_path(act)
-    abspath = os.sep.join([os.path.expanduser(root), relpath])
-    absimgpath = os.sep.join([abspath, imgdirname])
-    os.rmdir(absimgpath)
-    os.rmdir(abspath)
+    os.rmdir(act_to_img_path(act, root, imgdirname))
+    os.rmdir(act_to_abs_path(act, root))
