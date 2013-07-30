@@ -93,8 +93,21 @@ def assemble_page(parsedlist, markx = True, onlyfilenames = True):
     return "\n###\n".join(parsedlist)
 
 ###############################################################
-#LITTLE TWEAKS ZONE: small things that are nice to have
+#LITTLE TWEAKS ZONE: small utilities that are nice to have
 ###############################################################
+
+def list_all_pages(root = os.curdir):
+    """Returns the list of all pages present in the repository."""
+    pages = []
+    pattern = "[0-9][0-9][0-9][0-9][0-9][0-9].txt"
+    for path, dirs, files in os.walk(os.path.abspath(os.path.expanduser(root))):
+        for filename in fnmatch.filter(files, pattern):
+            pages.append([filename.strip(".txt"), path_to_act(path, root)])
+    return sorted(pages)
+
+def get_latest_pagenumber(root = os.curdir):
+    """Gets the latest pagenumber in the repository. Convinitent for updating."""
+    return list_all_pages(root)[-1]
 
 def special_link_to_ordinary(link):
     """Converts a special link for animated/interactive content (like the ones starting with F| for .swf files) to an ordinary link pointing to an actual file. A small utility that is nice to have"""
@@ -123,7 +136,11 @@ def check_act(act, root = os.curdir, imgdirname = "img"):
             return False
     else:
         return False
-    
+
+def path_to_act(path, root = os.curdir):
+    act = " ".join(path.strip(os.path.abspath(os.path.expanduser(root))).split("/"))
+    return act
+
 ###############################################################
 #IMAGES ZONE: handling images
 ###############################################################
