@@ -99,7 +99,7 @@ def assemble_page(parsedlist, markx = True, onlyfilenames = True):
 def list_all_pages(root = os.curdir):
     """Returns the list of all pages present in the repository, plus their acts"""
     pages = []
-    pattern = "[0-9][0-9][0-9][0-9][0-9][0-9].txt"
+    pattern = "[0-9][0-9][0-9][0-9][0-9][0-9].txt" #Fsck it. Just fsck it.
     for path, dirs, files in os.walk(os.path.abspath(os.path.expanduser(root))):
         for filename in fnmatch.filter(files, pattern):
             pages.append([filename.strip(".txt"), path_to_act(path, root)])
