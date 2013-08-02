@@ -34,7 +34,7 @@ def get_hussies_page(pagenum):
     if readhussie.find("404 Not Found") == -1:
         return "\n".join(readhussie.splitlines())
     else:
-        raise IOError("MS Paint Adventures website appears not to have this page.")
+        raise IOError("MS Paint Adventures website appears not to have the page " + pagenum + ".")
         return
 
 def parse_page(text):
@@ -113,6 +113,14 @@ def special_link_to_ordinary(link):
     """Converts a special link for animated/interactive content (like the ones starting with F| for .swf files) to an ordinary link pointing to an actual file. A small utility that is nice to have"""
     if link[:2] == "F|":
         link = link[2:] + "/" + link[2:].split("/")[-1] + ".swf" # Ugh, this thing is ugly as fsck. But I guess, it works. I was too lazy for urlsplit, may be later.
+    if link[:2] == "S|":
+        hussieresponse = urllib.urlopen(link[2:] + "/" + link[2:].split("/")[-1] + ".swf")
+        readhussie = hussieresponse.read()
+        if readhussie.find("404 Not Found") == -1:
+            link = link[2:] + "/" + link[2:].split("/")[-1] + ".swf"
+        else:
+            link = link[2:] + "/" + link[2:].split("/")[-1] + ".gif"
+    print link
     return link
 
 def act_to_rel_path(act):
