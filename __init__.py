@@ -120,7 +120,6 @@ def special_link_to_ordinary(link):
             link = link[2:] + "/" + link[2:].split("/")[-1] + ".swf"
         else:
             link = link[2:] + "/" + link[2:].split("/")[-1] + ".gif"
-    print link
     return link
 
 def act_to_rel_path(act):
