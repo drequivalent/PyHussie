@@ -148,10 +148,6 @@ def path_to_act(path, root = os.curdir):
     act = " ".join(path.strip(os.path.abspath(os.path.expanduser(root))).split("/"))
     return act
 
-def test_dummy():
-    """Test function to trigger autobuild"""
-    return
-
 ###############################################################
 #IMAGES ZONE: handling images
 ###############################################################
