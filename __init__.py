@@ -145,6 +145,7 @@ def check_act(act, root = os.curdir, imgdirname = "img"):
         return False
 
 def path_to_act(path, root = os.curdir):
+    """Takes an absolute path and returns act name"""
     act = " ".join(path.strip(os.path.abspath(os.path.expanduser(root))).split("/"))
     return act
 
@@ -243,6 +244,14 @@ def move_page(pagenumber, act, root = os.curdir, imgdirname = "img"):
         newimgpath = (os.sep.join([newactpath, imgdirname, imgpath.split(os.sep)[-1]]))
         os.rename(imgpath, newimgpath)
     os.rename(pagepath, newpagepath)
+
+def delete_page(pagenumber, root = os.curdir, imgdirname = "img"):
+    """Removes the specified page"""
+    pagepath = locate_trans_page(pagenumber, root)
+    imgpaths = locate_trans_images(pagenumber, root)
+    for imgpath in imgpaths:
+        os.remove(imgpath)
+    os.remove(pagepath)
 
 def drop_act(act, root = os.curdir, imgdirname = "img"):
     """Deletes the act from repository, but only if it is empty."""
