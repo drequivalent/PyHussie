@@ -23,8 +23,6 @@ import os
 import fnmatch
 import StringIO
 
-def test():
-    return
 
 ###############################################################
 #PAGES ZONE: handling pages, the essential part of repository
