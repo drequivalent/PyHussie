@@ -145,9 +145,19 @@ def check_act(act, root = os.curdir, imgdirname = "img"):
         return False
 
 def path_to_act(path, root = os.curdir):
-    """Takes an absolute path and returns act name"""
+    """Takes an absolute path of an act and returns act name"""
     act = " ".join(path.strip(os.path.abspath(os.path.expanduser(root))).split("/"))
     return act
+
+def check_page_content(fullpage):
+    """Takes a string with a full page. If it is valid, returns True"""
+    try:
+        if len(parse_page(fullpage)) == 6:
+            return True
+        else:
+            return False
+    except IndexError:
+        return False
 
 ###############################################################
 #IMAGES ZONE: handling images
