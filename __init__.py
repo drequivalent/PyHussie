@@ -23,6 +23,9 @@ import os
 import fnmatch
 import StringIO
 
+def triggertest)=:
+    return
+
 ###############################################################
 #PAGES ZONE: handling pages, the essential part of repository
 ###############################################################
